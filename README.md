@@ -37,6 +37,21 @@ curl -X POST http://127.0.0.1:8000/predict -H 'Content-Type: application/json' -
 
 Все семь полей обязательны, числовые значения от 0. Ответ 200 с `true` или `false`, 400 при неверных данных, 500 при ошибке в сервисе или репозитории.
 
+## База данных
+
+```
+docker compose up
+python3 -m pgmigrate -d db -t latest migrate
+```
+
+Поднимается postgres 16 на порту 5435, база hw. Миграция `db/migrations/V001__init.sql` создает таблицы users и items, связь держится через items.seller_id.
+
+Ручка `POST /simple_predict` принимает только `{"item_id": 1}`, догружает объявление и продавца одним запросом с JOIN и возвращает тот же голый bool. Ответ 200 с `true` или `false`, 400 при неверном идентификаторе, 404 если объявления нет, 500 при ошибке чтения из базы.
+
+```bash
+curl -X POST http://127.0.0.1:8000/simple_predict -H 'Content-Type: application/json' -d '{"item_id": 1}'
+```
+
 ## Тесты
 
 ```

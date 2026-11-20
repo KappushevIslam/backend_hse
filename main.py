@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
@@ -5,12 +7,22 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 
 from exceptions import PredictionError
+from repositories.database import close_pool, get_pool
 from routers.predict import router as predict_router
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await get_pool()
+    yield
+    await close_pool()
+
 
 app = FastAPI(
     title="Ad moderation service",
     description="Проверка объявлений на нарушения.",
     version="0.1.0",
+    lifespan=lifespan,
 )
 app.include_router(predict_router)
 
